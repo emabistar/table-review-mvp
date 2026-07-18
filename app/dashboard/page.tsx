@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient';
-
 type Business = { id: string; name: string };
 type Review = {
   id: string;
@@ -43,6 +42,7 @@ export default function DashboardPage() {
       }
       setBusiness(biz);
 
+      // All reviews this week, for the stat row
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const { data: weekReviews } = await supabase
         .from('reviews')
@@ -51,6 +51,7 @@ export default function DashboardPage() {
         .gte('created_at', weekAgo);
       setAllReviews(weekReviews || []);
 
+      // Just the low-rating ones needing attention, for the alert list
       const { data: lowReviews } = await supabase
         .from('reviews')
         .select('id, rating, resolved, customer_name, customer_phone, note, created_at')
@@ -163,7 +164,14 @@ export default function DashboardPage() {
                   </button>
                 )}
                 {r.customer_phone && (
-                  <button className="alert-btn">Call {maskPhone(r.customer_phone)}</button>
+                  <>
+                    <a className="alert-btn" href={`tel:${r.customer_phone.replace(/\s/g, '')}`}>
+                      Call {maskPhone(r.customer_phone)}
+                    </a>
+                    <a className="alert-btn" href={`sms:${r.customer_phone.replace(/\s/g, '')}`}>
+                      Text
+                    </a>
+                  </>
                 )}
               </div>
             </div>
@@ -172,6 +180,8 @@ export default function DashboardPage() {
       </div>
 
       <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
         .page-center {
           min-height: 100vh;
           display: flex;
@@ -179,7 +189,7 @@ export default function DashboardPage() {
           justify-content: center;
           text-align: center;
           padding: 24px;
-          font-family: sans-serif;
+          font-family: 'IBM Plex Sans', sans-serif;
           color: #efe6d2;
           background: #161f1a;
         }
@@ -187,7 +197,7 @@ export default function DashboardPage() {
         .dash-page {
           min-height: 100vh;
           background: #161f1a;
-          font-family: sans-serif;
+          font-family: 'IBM Plex Sans', sans-serif;
           color: #161f1a;
           padding: 36px 16px 80px;
         }
@@ -202,12 +212,14 @@ export default function DashboardPage() {
           margin-bottom: 16px;
         }
         .top-row .eyebrow {
+          font-family: 'IBM Plex Mono', monospace;
           font-size: 12px;
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: #cfc4a4;
         }
         .logout-btn {
+          font-family: 'IBM Plex Mono', monospace;
           font-size: 11px;
           letter-spacing: 0.08em;
           text-transform: uppercase;
@@ -226,6 +238,8 @@ export default function DashboardPage() {
           padding: 34px;
         }
         h1 {
+          font-family: 'Fraunces', serif;
+          font-weight: 600;
           font-size: 26px;
           margin: 0 0 6px;
         }
@@ -250,8 +264,9 @@ export default function DashboardPage() {
           text-align: center;
         }
         .stat-num {
-          font-size: 26px;
+          font-family: 'Fraunces', serif;
           font-weight: 600;
+          font-size: 26px;
         }
         .stat-num.gold {
           color: #a67e1e;
@@ -260,6 +275,7 @@ export default function DashboardPage() {
           color: #8f2c22;
         }
         .stat-label {
+          font-family: 'IBM Plex Mono', monospace;
           font-size: 10px;
           letter-spacing: 0.1em;
           text-transform: uppercase;
@@ -268,6 +284,7 @@ export default function DashboardPage() {
         }
 
         .section-label {
+          font-family: 'IBM Plex Mono', monospace;
           font-size: 11px;
           letter-spacing: 0.14em;
           text-transform: uppercase;
@@ -299,6 +316,7 @@ export default function DashboardPage() {
           font-size: 14px;
         }
         .alert-meta {
+          font-family: 'IBM Plex Mono', monospace;
           font-size: 10.5px;
           color: #5c6b62;
         }
@@ -320,6 +338,7 @@ export default function DashboardPage() {
           gap: 8px;
         }
         .alert-btn {
+          font-family: 'IBM Plex Mono', monospace;
           font-size: 10.5px;
           letter-spacing: 0.08em;
           text-transform: uppercase;
@@ -328,6 +347,10 @@ export default function DashboardPage() {
           padding: 6px 12px;
           border-radius: 999px;
           cursor: pointer;
+          text-decoration: none;
+          color: #161f1a;
+          display: inline-flex;
+          align-items: center;
         }
         .alert-btn.primary {
           background: #3d6b4f;
