@@ -10,7 +10,7 @@ type Business = {
   google_place_id: string | null;
 };
 
-type Stage = 'loading' | 'not_found' | 'form' | 'submitting' | 'result_high' | 'result_low';
+type Stage = 'loading' | 'not_found' | 'form' | 'submitting' | 'result_offer' | 'result_thanks';
 
 export default function ReviewPage({ params }: { params: Promise<{ businessId: string }> }) {
   const { businessId } = use(params);
@@ -25,6 +25,7 @@ export default function ReviewPage({ params }: { params: Promise<{ businessId: s
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [note, setNote] = useState('');
+  const [submittedReviewId, setSubmittedReviewId] = useState<string | null>(null);
 
   // Load the business this QR code belongs to
   useEffect(() => {
@@ -49,16 +50,26 @@ export default function ReviewPage({ params }: { params: Promise<{ businessId: s
     if (rating === 0 || !business) return;
     setStage('submitting');
 
-    const routedToGoogle = rating >= 4 && !!business.google_place_id;
+    // Compliance note: Google's policy prohibits "review gating" — routing customers to
+    // a public review link based on their sentiment/rating. Every customer gets the same
+    // option to leave a Google review, regardless of what they rated. The private note/phone
+    // capture below is an *additional* option for everyone, not a replacement for low ratings.
+    const canOfferGoogle = !!business.google_place_id;
 
-    const { error } = await supabase.from('reviews').insert({
-      business_id: business.id,
-      customer_name: name.trim() || null,
-      customer_phone: phone.trim() || null,
-      rating,
-      note: note.trim() || null,
-      routed_to_google: routedToGoogle,
-    });
+    const fullPhone = phone.trim() ? `+45 ${phone.trim()}` : null;
+
+    const { data: inserted, error } = await supabase
+      .from('reviews')
+      .insert({
+        business_id: business.id,
+        customer_name: name.trim() || null,
+        customer_phone: fullPhone,
+        rating,
+        note: note.trim() || null,
+        routed_to_google: false, // set true below only if they actually click through
+      })
+      .select('id')
+      .single();
 
     if (error) {
       // Simple MVP fallback — surface it and let them retry rather than losing the review
@@ -67,13 +78,20 @@ export default function ReviewPage({ params }: { params: Promise<{ businessId: s
       return;
     }
 
-    if (routedToGoogle) {
-      setStage('result_high');
-      setTimeout(() => {
-        window.location.href = `https://search.google.com/local/writereview?placeid=${business.google_place_id}`;
-      }, 1800);
-    } else {
-      setStage('result_low');
+    setSubmittedReviewId(inserted?.id ?? null);
+    setStage(canOfferGoogle ? 'result_offer' : 'result_thanks');
+  }
+
+  async function goToGoogle() {
+    if (business?.google_place_id) {
+      if (submittedReviewId) {
+        // Best-effort: record that they actually clicked through, not just that they were offered
+        await supabase
+          .from('reviews')
+          .update({ routed_to_google: true })
+          .eq('id', submittedReviewId);
+      }
+      window.location.href = `https://search.google.com/local/writereview?placeid=${business.google_place_id}`;
     }
   }
 
@@ -139,12 +157,16 @@ export default function ReviewPage({ params }: { params: Promise<{ businessId: s
                   <span className="field-label">
                     Phone <span className="soft">(optional — for a reply, not marketing)</span>
                   </span>
-                  <input
-                    type="tel"
-                    placeholder="+45"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
+                  <div className="phone-row">
+                    <span className="phone-prefix">+45</span>
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      placeholder="20 12 34 56"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value.replace(/[^\d\s]/g, ''))}
+                    />
+                  </div>
                 </div>
 
                 <div className="field">
@@ -171,7 +193,7 @@ export default function ReviewPage({ params }: { params: Promise<{ businessId: s
             </>
           )}
 
-          {stage === 'result_high' && (
+          {(stage === 'result_offer' || stage === 'result_thanks') && (
             <div className="result show">
               <svg className="result-icon" viewBox="0 0 24 24" fill="none">
                 <path
@@ -182,34 +204,32 @@ export default function ReviewPage({ params }: { params: Promise<{ businessId: s
                 />
               </svg>
               <h2>Thank you, {firstName}.</h2>
-              <p>
-                So glad you had a good visit. Taking you to Google to share it publicly — this
-                takes about ten seconds and really helps a small place like this.
-              </p>
-              <div className="redirect-bar">
-                <div className="redirect-bar-fill" />
-              </div>
-            </div>
-          )}
 
-          {stage === 'result_low' && (
-            <div className="result show">
-              <svg className="result-icon" viewBox="0 0 24 24" fill="none" stroke="#8f2c22" strokeWidth="1.5">
-                <circle cx="12" cy="12" r="9.3" />
-                <path
-                  d="M9 10.5h.01M15 10.5h.01M8.5 15.5c1-1.2 2.2-1.8 3.5-1.8s2.5.6 3.5 1.8"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <h2>Thanks for letting us know, {firstName}.</h2>
-              <p>
-                This isn&apos;t posted publicly. It&apos;s gone straight to the manager on duty,
-                and if you left a number, someone will follow up.
-              </p>
+              {rating <= 3 ? (
+                <p>
+                  We've passed this straight to the manager on duty, and if you left a number,
+                  someone will follow up. If you'd also like to share it publicly, that's
+                  entirely up to you — the option's below either way.
+                </p>
+              ) : (
+                <p>
+                  So glad you had a good visit. If you have a moment, sharing it on Google
+                  really helps a small place like this.
+                </p>
+              )}
+
+              {stage === 'result_offer' && (
+                <button className="stamp-btn" onClick={goToGoogle}>
+                  Leave a Google review
+                </button>
+              )}
             </div>
           )}
         </div>
       </div>
+      {(stage === 'result_offer' || stage === 'result_thanks') && (
+        <p className="skip-note">You can close this page any time — nothing else is required.</p>
+      )}
       </>
       )}
 
@@ -374,6 +394,22 @@ export default function ReviewPage({ params }: { params: Promise<{ businessId: s
           stroke: var(--stamp-dark);
         }
 
+        .phone-row {
+          display: flex;
+          align-items: flex-end;
+          gap: 8px;
+        }
+        .phone-prefix {
+          font-family: 'IBM Plex Mono', monospace;
+          font-size: 15px;
+          color: var(--slate);
+          padding-bottom: 8px;
+          flex-shrink: 0;
+        }
+        .phone-row input {
+          flex: 1;
+        }
+
         .field {
           margin-bottom: 18px;
         }
@@ -469,6 +505,18 @@ export default function ReviewPage({ params }: { params: Promise<{ businessId: s
           color: var(--slate);
           line-height: 1.5;
           margin: 0 0 22px;
+        }
+
+        .result .stamp-btn {
+          margin-top: 4px;
+        }
+
+        .skip-note {
+          text-align: center;
+          font-size: 11.5px;
+          color: #6b7970;
+          margin-top: 14px;
+          font-family: 'IBM Plex Mono', monospace;
         }
 
         .redirect-bar {
