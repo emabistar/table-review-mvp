@@ -1,3 +1,5 @@
+
+
 'use client';
 
 import { useEffect, useState, use } from 'react';
@@ -57,19 +59,17 @@ export default function ReviewPage({ params }: { params: Promise<{ businessId: s
     const canOfferGoogle = !!business.google_place_id;
 
     const fullPhone = phone.trim() ? `+45 ${phone.trim()}` : null;
+    const newReviewId = crypto.randomUUID();
 
-    const { data: inserted, error } = await supabase
-      .from('reviews')
-      .insert({
-        business_id: business.id,
-        customer_name: name.trim() || null,
-        customer_phone: fullPhone,
-        rating,
-        note: note.trim() || null,
-        routed_to_google: false, // set true below only if they actually click through
-      })
-      .select('id')
-      .single();
+    const { error } = await supabase.from('reviews').insert({
+      id: newReviewId,
+      business_id: business.id,
+      customer_name: name.trim() || null,
+      customer_phone: fullPhone,
+      rating,
+      note: note.trim() || null,
+      routed_to_google: false, // set true below only if they actually click through
+    });
 
     if (error) {
       // Simple MVP fallback — surface it and let them retry rather than losing the review
@@ -78,7 +78,7 @@ export default function ReviewPage({ params }: { params: Promise<{ businessId: s
       return;
     }
 
-    setSubmittedReviewId(inserted?.id ?? null);
+    setSubmittedReviewId(newReviewId);
     setStage(canOfferGoogle ? 'result_offer' : 'result_thanks');
   }
 
@@ -542,3 +542,4 @@ export default function ReviewPage({ params }: { params: Promise<{ businessId: s
     </div>
   );
 }
+
