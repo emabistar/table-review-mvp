@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient';
+
 type Business = { id: string; name: string };
 type Review = {
   id: string;
@@ -108,14 +109,19 @@ export default function DashboardPage() {
 
   return (
     <div className="dash-page">
-      <div className="wrap">
-        <div className="top-row">
-          <span className="eyebrow">{business.name}</span>
+      <nav className="dash-nav">
+        <a href="/" className="wordmark">
+          Scan<span className="wordmark-accent">Say</span>
+        </a>
+        <div className="nav-right">
+          <span className="nav-business">{business.name}</span>
           <button className="logout-btn" onClick={handleLogout}>
             Sign out
           </button>
         </div>
+      </nav>
 
+      <div className="wrap">
         <div className="card">
           <h1>This week</h1>
           <p className="lede">
@@ -180,7 +186,7 @@ export default function DashboardPage() {
       </div>
 
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
         .page-center {
           min-height: 100vh;
@@ -199,24 +205,42 @@ export default function DashboardPage() {
           background: #161f1a;
           font-family: 'IBM Plex Sans', sans-serif;
           color: #161f1a;
-          padding: 36px 16px 80px;
         }
-        .wrap {
-          max-width: 640px;
-          margin: 0 auto;
-        }
-        .top-row {
+
+        .dash-nav {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 16px;
+          padding: 20px 5vw;
+          max-width: 1000px;
+          margin: 0 auto;
         }
-        .top-row .eyebrow {
+        .wordmark {
+          font-family: 'Fraunces', serif;
+          font-weight: 700;
+          font-size: 20px;
+          color: #fbf7ec;
+          text-decoration: none;
+        }
+        .wordmark-accent { color: #b23a2e; }
+
+        .nav-right {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+        }
+        .nav-business {
           font-family: 'IBM Plex Mono', monospace;
           font-size: 12px;
-          letter-spacing: 0.12em;
+          letter-spacing: 0.08em;
           text-transform: uppercase;
           color: #cfc4a4;
+        }
+
+        .wrap {
+          max-width: 640px;
+          margin: 0 auto;
+          padding: 8px 16px 80px;
         }
         .logout-btn {
           font-family: 'IBM Plex Mono', monospace;
