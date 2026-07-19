@@ -5,7 +5,6 @@
 import { useEffect, useState, use } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
-
 type Business = {
   id: string;
   name: string;
@@ -466,6 +465,10 @@ export default function ReviewPage({ params }: { params: Promise<{ businessId: s
           border-radius: 999px;
           cursor: pointer;
           transition: all 0.2s ease;
+          max-width: 100%;
+          box-sizing: border-box;
+          white-space: normal;
+          line-height: 1.4;
         }
         .stamp-btn:disabled {
           opacity: 0.35;
@@ -487,7 +490,9 @@ export default function ReviewPage({ params }: { params: Promise<{ businessId: s
 
         .result {
           text-align: center;
-          padding: 50px 30px 44px;
+          padding: 50px 24px 44px;
+          width: 100%;
+          box-sizing: border-box;
         }
         .result-icon {
           width: 52px;
@@ -509,6 +514,9 @@ export default function ReviewPage({ params }: { params: Promise<{ businessId: s
 
         .result .stamp-btn {
           margin-top: 4px;
+          padding: 12px 22px;
+          font-size: 12px;
+          letter-spacing: 0.1em;
         }
 
         .skip-note {
@@ -542,4 +550,3 @@ export default function ReviewPage({ params }: { params: Promise<{ businessId: s
     </div>
   );
 }
-
