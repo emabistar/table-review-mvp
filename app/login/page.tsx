@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient';
 
@@ -10,6 +10,25 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [stylesReady, setStylesReady] = useState(false);
+
+  useEffect(() => {
+    let finished = false;
+    const reveal = () => {
+      if (!finished) {
+        finished = true;
+        setStylesReady(true);
+      }
+    };
+    // Wait for web fonts to actually be ready, but never wait more than 700ms
+    if (typeof document !== 'undefined' && 'fonts' in document) {
+      document.fonts.ready.then(reveal).catch(reveal);
+    } else {
+      reveal();
+    }
+    const fallback = setTimeout(reveal, 700);
+    return () => clearTimeout(fallback);
+  }, []);
 
   async function handleLogin() {
     setLoading(true);
@@ -28,7 +47,36 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="login-page">
+    <>
+      {!stylesReady && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: '#171f1a',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+          }}
+        >
+          <span
+            style={{
+              fontFamily: 'Georgia, serif',
+              fontSize: 22,
+              color: '#fbf7ec',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            Scan<span style={{ color: '#b23a2e' }}>Say</span>
+          </span>
+        </div>
+      )}
+
+      <div
+        className="login-page"
+        style={{ opacity: stylesReady ? 1 : 0, transition: 'opacity 0.25s ease' }}
+      >
       <div className="brand-panel">
         <a href="/" className="wordmark">
           Scan<span className="wordmark-accent">Say</span>
@@ -247,6 +295,7 @@ export default function LoginPage() {
           .brand-copy p { display: none; }
         }
       `}</style>
-    </div>
+      </div>
+    </>
   );
 }

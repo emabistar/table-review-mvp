@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 
 type Stage = 'form' | 'submitting' | 'done';
@@ -13,6 +13,42 @@ export default function SignupPage() {
   const [placeId, setPlaceId] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [reviewUrl, setReviewUrl] = useState('');
+  const [stylesReady, setStylesReady] = useState(false);
+
+  useEffect(() => {
+    let finished = false;
+    const reveal = () => {
+      if (!finished) {
+        finished = true;
+        setStylesReady(true);
+      }
+    };
+    if (typeof document !== 'undefined' && 'fonts' in document) {
+      document.fonts.ready.then(reveal).catch(reveal);
+    } else {
+      reveal();
+    }
+    const fallback = setTimeout(reveal, 700);
+    return () => clearTimeout(fallback);
+  }, []);
+
+  const loader = !stylesReady && (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: '#171f1a',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+      }}
+    >
+      <span style={{ fontFamily: 'Georgia, serif', fontSize: 22, color: '#fbf7ec', letterSpacing: '-0.01em' }}>
+        Scan<span style={{ color: '#b23a2e' }}>Say</span>
+      </span>
+    </div>
+  );
 
   async function handleSubmit() {
     setError(null);
@@ -65,7 +101,9 @@ export default function SignupPage() {
     const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(reviewUrl)}`;
 
     return (
-      <div className="signup-page">
+      <>
+        {loader}
+        <div className="signup-page" style={{ opacity: stylesReady ? 1 : 0, transition: 'opacity 0.25s ease' }}>
         <div className="card">
           <div className="eyebrow">You're set up</div>
           <h1>{name}</h1>
@@ -99,12 +137,15 @@ export default function SignupPage() {
           </p>
         </div>
         <style jsx global>{globalStyles}</style>
-      </div>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="signup-page">
+    <>
+      {loader}
+      <div className="signup-page" style={{ opacity: stylesReady ? 1 : 0, transition: 'opacity 0.25s ease' }}>
       <div className="card">
         <div className="eyebrow">New restaurant</div>
         <h1>Set up your review page</h1>
@@ -164,7 +205,8 @@ export default function SignupPage() {
         </button>
       </div>
       <style jsx global>{globalStyles}</style>
-    </div>
+      </div>
+    </>
   );
 }
 

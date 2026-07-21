@@ -21,6 +21,24 @@ export default function DashboardPage() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [allReviews, setAllReviews] = useState<Review[]>([]);
+  const [stylesReady, setStylesReady] = useState(false);
+
+  useEffect(() => {
+    let finished = false;
+    const reveal = () => {
+      if (!finished) {
+        finished = true;
+        setStylesReady(true);
+      }
+    };
+    if (typeof document !== 'undefined' && 'fonts' in document) {
+      document.fonts.ready.then(reveal).catch(reveal);
+    } else {
+      reveal();
+    }
+    const fallback = setTimeout(reveal, 700);
+    return () => clearTimeout(fallback);
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -76,11 +94,23 @@ export default function DashboardPage() {
     router.push('/login');
   }
 
-  if (loading) return <div className="page-center">Loading…</div>;
+  const centerStyle = {
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
+    padding: 24,
+    fontFamily: 'IBM Plex Sans, sans-serif',
+    color: '#efe6d2',
+    background: '#161f1a',
+  } as const;
+
+  if (loading) return <div style={centerStyle}>Loading…</div>;
 
   if (!business) {
     return (
-      <div className="page-center">
+      <div style={centerStyle}>
         No business is linked to this account yet — insert one via the businesses table
         with owner_id set to your logged-in user.
       </div>
@@ -108,7 +138,25 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="dash-page">
+    <>
+      {!stylesReady && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: '#171f1a',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+          }}
+        >
+          <span style={{ fontFamily: 'Georgia, serif', fontSize: 22, color: '#fbf7ec', letterSpacing: '-0.01em' }}>
+            Scan<span style={{ color: '#b23a2e' }}>Say</span>
+          </span>
+        </div>
+      )}
+    <div className="dash-page" style={{ opacity: stylesReady ? 1 : 0, transition: 'opacity 0.25s ease' }}>
       <nav className="dash-nav">
         <a href="/" className="wordmark">
           Scan<span className="wordmark-accent">Say</span>
@@ -383,5 +431,6 @@ export default function DashboardPage() {
         }
       `}</style>
     </div>
+    </>
   );
 }
