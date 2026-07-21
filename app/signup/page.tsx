@@ -1,6 +1,6 @@
 'use client';
-
 import { useState, useEffect } from 'react';
+
 import { supabase } from '../../lib/supabaseClient';
 
 type Stage = 'form' | 'submitting' | 'done';
@@ -104,6 +104,9 @@ export default function SignupPage() {
       <>
         {loader}
         <div className="signup-page" style={{ opacity: stylesReady ? 1 : 0, transition: 'opacity 0.25s ease' }}>
+        <a href="/" className="back-home-link">
+          <span className="back-home-arrow">←</span> Home
+        </a>
         <div className="card">
           <div className="eyebrow">You're set up</div>
           <h1>{name}</h1>
@@ -146,6 +149,9 @@ export default function SignupPage() {
     <>
       {loader}
       <div className="signup-page" style={{ opacity: stylesReady ? 1 : 0, transition: 'opacity 0.25s ease' }}>
+      <a href="/" className="back-home-link">
+        <span className="back-home-arrow">←</span> Home
+      </a>
       <div className="card">
         <div className="eyebrow">New restaurant</div>
         <h1>Set up your review page</h1>
@@ -203,6 +209,10 @@ export default function SignupPage() {
         <button className="submit-btn" disabled={stage === 'submitting'} onClick={handleSubmit}>
           {stage === 'submitting' ? 'Setting up…' : 'Create my QR code'}
         </button>
+
+        <p className="signin-hint">
+          Already set up? <a href="/login">Sign in</a>
+        </p>
       </div>
       <style jsx global>{globalStyles}</style>
       </div>
@@ -345,4 +355,37 @@ const globalStyles = `
     text-align: center;
     margin: 0;
   }
+  .back-home-link {
+    position: fixed;
+    top: 24px;
+    left: 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: #fbf7ec;
+    background: rgba(23, 31, 26, 0.55);
+    border: 1.5px solid #384136;
+    padding: 8px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+  }
+  .back-home-arrow {
+    font-size: 15px;
+  }
+  .signin-hint {
+    text-align: center;
+    font-size: 13px;
+    color: #5c6b62;
+    margin-top: 18px;
+  }
+  .signin-hint a {
+    color: #b23a2e;
+    font-weight: 600;
+    text-decoration: none;
+  }
 `;
+

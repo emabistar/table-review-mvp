@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient';
@@ -78,9 +77,14 @@ export default function LoginPage() {
         style={{ opacity: stylesReady ? 1 : 0, transition: 'opacity 0.25s ease' }}
       >
       <div className="brand-panel">
-        <a href="/" className="wordmark">
-          Scan<span className="wordmark-accent">Say</span>
-        </a>
+        <div className="brand-top">
+          <a href="/" className="wordmark">
+            Scan<span className="wordmark-accent">Say</span>
+          </a>
+          <a href="/" className="home-link">
+            <span className="home-arrow">←</span> Home
+          </a>
+        </div>
         <div className="brand-copy">
           <h1>Every table has something to say.</h1>
           <p>Sign in to see what came in today — good, bad, and everything worth acting on.</p>
@@ -153,6 +157,11 @@ export default function LoginPage() {
           flex-direction: column;
           justify-content: space-between;
         }
+        .brand-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
         .wordmark {
           font-family: 'Fraunces', serif;
           font-weight: 700;
@@ -161,6 +170,20 @@ export default function LoginPage() {
           text-decoration: none;
         }
         .wordmark-accent { color: #b23a2e; }
+        .home-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-family: 'IBM Plex Mono', monospace;
+          font-size: 12.5px;
+          font-weight: 600;
+          color: #cfc4a4;
+          border: 1.5px solid #384136;
+          padding: 7px 13px;
+          border-radius: 999px;
+          text-decoration: none;
+        }
+        .home-arrow { font-size: 14px; }
 
         .brand-copy h1 {
           font-family: 'Fraunces', serif;
@@ -299,3 +322,5 @@ export default function LoginPage() {
     </>
   );
 }
+
+
