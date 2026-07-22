@@ -91,6 +91,23 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ON YOUR TABLES */}
+      <section className="on-table">
+        <div className="on-table-copy">
+          <span className="eyebrow">What it looks like in the room</span>
+          <h2 className="section-title">One small stand. Every table.</h2>
+          <p className="on-table-sub">
+            A slim acrylic holder, the same one you'd use for a drinks menu — just with a QR
+            code instead. No app, no login for the customer, nothing to explain.
+          </p>
+        </div>
+
+        <div className="scene-photo">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/table-scene.png" alt="ScanSay QR stand on a restaurant table" />
+        </div>
+      </section>
+
       {/* THE STORY */}
       <section className="story">
         <span className="eyebrow center">Why this exists</span>
@@ -390,6 +407,39 @@ export default function LandingPage() {
           color: var(--stamp);
           padding: 10px;
           border-radius: 999px;
+        }
+
+        /* ON YOUR TABLES */
+        .on-table {
+          max-width: 1100px;
+          margin: 0 auto;
+          padding: 40px 5vw 110px;
+          display: grid;
+          grid-template-columns: 0.9fr 1.1fr;
+          gap: 48px;
+          align-items: center;
+        }
+        .on-table-sub {
+          font-size: 16px;
+          color: #b8c2ba;
+          line-height: 1.6;
+          max-width: 420px;
+          margin-top: 4px;
+        }
+
+        .scene-photo {
+          border-radius: 10px;
+          overflow: hidden;
+          box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.5);
+        }
+        .scene-photo img {
+          display: block;
+          width: 100%;
+          height: auto;
+        }
+
+        @media (max-width: 800px) {
+          .on-table { grid-template-columns: 1fr; }
         }
 
         /* STORY */
